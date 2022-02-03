@@ -1,0 +1,57 @@
+name: Build Release
+
+on:
+  push:
+    branches:
+    - 'master'
+    tags:
+    - 'v*'
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Gofmt
+        run: if [ "$(gofmt -l . | wc -l)" -gt 0 ]; then gofmt -d . && exit 1; fi
+
+      - name: Go mod download
+        run: go mod download
+
+      - name: Go Vet
+        run: go vet ./...
+
+      - name: Go Build
+        run: go build .
+
+      - name: Go Test
+        run: go test ./...
+
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Cloud Functions Deploy
+      uses: google-github-actions/deploy-cloud-functions@v0.8.0
+      with:
+        credentials: ${{ secrets.GCP_SA_KEY }}
+        name: go-cloud-function-template
+        description: Template project for deploying cloud function written in go
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        region: europe-west1
+        entry_point: HelloWorld
+        runtime: go116
+        timeout: 60
+        max_instances: 1
