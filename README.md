@@ -20,6 +20,16 @@ A sample cloud function with github actions set up for deployment to GCP
 
 ## testing
 
+### local testing
+
+```bash
+    > go run cmd/main.go
+    > curl localhost:8080
+    Hello World!
+```
+
+### deployed function
+
 ```bash
 curl -H "Authorization: bearer $(gcloud auth print-identity-token)" https://<region>-<project_id>.cloudfunctions.net/go-cloud-function-template
  ```
